@@ -61,6 +61,10 @@ func ApiInitValidator() {
 	if err != nil {
 		panic(err)
 	}
+	err = fr_translations.RegisterDefaultTranslations(validate, frTrans)
+	if err != nil {
+		panic(err)
+	}
 
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		label := field.Tag.Get("label")
