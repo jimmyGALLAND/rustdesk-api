@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lejianwen/rustdesk-api/v2/global"
+	"rustdesk-api/global"
 	"github.com/sirupsen/logrus"
 )
 

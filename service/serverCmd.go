@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/lejianwen/rustdesk-api/v2/model"
+	"rustdesk-api/model"
 	"net"
 	"time"
 )

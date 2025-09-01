@@ -12,8 +12,8 @@ import (
 
 	"github.com/go-ldap/ldap/v3"
 
-	"github.com/jimmyGALLAND/rustdesk-api/v2/config"
-	"github.com/jimmyGALLAND/rustdesk-api/v2/model"
+	"rustdesk-api/config"
+	"rustdesk-api/model"
 )
 
 var (
@@ -209,8 +209,6 @@ func (ls *LdapService) IsEmailExists(email string) bool {
 	return len(sr.Entries) > 0
 }
 
-<<<<<<< HEAD
-=======
 // GetUserInfoByUsernameLdap returns the user info from LDAP for the given username.
 func (ls *LdapService) GetUserInfoByUsernameLdap(username string) (*LdapUser, error) {
 	cfg := &Config.Ldap

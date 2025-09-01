@@ -2,10 +2,10 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	requstform "github.com/lejianwen/rustdesk-api/v2/http/request/api"
-	"github.com/lejianwen/rustdesk-api/v2/http/response"
-	"github.com/lejianwen/rustdesk-api/v2/model"
-	"github.com/lejianwen/rustdesk-api/v2/service"
+	requstform "rustdesk-api/http/request/api"
+	"rustdesk-api/http/response"
+	"rustdesk-api/model"
+	"rustdesk-api/service"
 	"net/http"
 	"time"
 )

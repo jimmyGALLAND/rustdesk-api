@@ -3,9 +3,9 @@ package admin
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/lejianwen/rustdesk-api/v2/global"
-	"github.com/lejianwen/rustdesk-api/v2/http/response"
-	"github.com/lejianwen/rustdesk-api/v2/lib/upload"
+	"rustdesk-api/global"
+	"rustdesk-api/http/response"
+	"rustdesk-api/lib/upload"
 	"os"
 	"time"
 )

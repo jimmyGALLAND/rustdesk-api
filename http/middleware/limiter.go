@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lejianwen/rustdesk-api/v2/global"
-	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"rustdesk-api/global"
+	"rustdesk-api/http/response"
 	"net/http"
 )
 

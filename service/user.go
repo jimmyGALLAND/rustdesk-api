@@ -6,10 +6,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/gin-gonic/gin"
-	"github.com/lejianwen/rustdesk-api/v2/model"
-	"github.com/lejianwen/rustdesk-api/v2/utils"
+	"rustdesk-api/model"
+	"rustdesk-api/utils"
 	"gorm.io/gorm"
 )
 
@@ -530,10 +529,3 @@ func (us *UserService) IsEmailExistsLdap(email string) bool {
 	return AllService.LdapService.IsEmailExists(email)
 }
 
-// IsUsernameExists 判断用户名是否存在, it will check the internal database and LDAP(if enabled)
-func (us *UserService) IsUsernameExists(username string) bool {
-	u := &model.User{}
-	global.DB.Where("username = ?", username).First(u)
-	existsInLdap := AllService.LdapService.IsUsernameExists(username)
-	return u.Id != 0 || existsInLdap
-}

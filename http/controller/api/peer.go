@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	requstform "github.com/lejianwen/rustdesk-api/v2/http/request/api"
-	"github.com/lejianwen/rustdesk-api/v2/http/response"
-	"github.com/lejianwen/rustdesk-api/v2/service"
+	requestform "rustdesk-api/http/request/api"
+	"rustdesk-api/http/response"
+	"rustdesk-api/service"
 	"net/http"
 )
 
@@ -19,12 +19,12 @@ type Peer struct {
 // @Description 提交系统信息
 // @Accept  json
 // @Produce  json
-// @Param body body requstform.PeerForm true "系统信息表单"
+// @Param body body requestform.PeerForm true "系统信息表单"
 // @Success 200 {string} string "SYSINFO_UPDATED,ID_NOT_FOUND"
 // @Failure 500 {object} response.ErrorResponse
 // @Router /sysinfo [post]
 func (p *Peer) SysInfo(c *gin.Context) {
-	f := &requstform.PeerForm{}
+	f := &requestform.PeerForm{}
 	err := c.ShouldBindBodyWith(f, binding.JSON)
 	if err != nil {
 		response.Error(c, response.TranslateMsg(c, "ParamsError")+err.Error())

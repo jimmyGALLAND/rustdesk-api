@@ -6,8 +6,8 @@ import (
 	"errors"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/lejianwen/rustdesk-api/v2/model"
-	"github.com/lejianwen/rustdesk-api/v2/utils"
+	"rustdesk-api/model"
+	"rustdesk-api/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 
