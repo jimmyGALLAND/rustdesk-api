@@ -39,7 +39,7 @@ env:
   DOCKERHUB_IMAGE_NAMESPACE: ${{ github.event.inputs.DOCKERHUB_IMAGE_NAMESPACE || github.actor }}
   GHCR_IMAGE_NAMESPACE: ${{ github.event.inputs.GHCR_IMAGE_NAMESPACE || github.actor }}
   SKIP_DOCKER_HUB: ${{ github.event.inputs.SKIP_DOCKER_HUB || 'false' }}
-  SKIP_GHCR: ${{ github.event.inputs.SKIP_GHCR || 'false' }}
+  SKIP_GHCR: ${{ github.event.inputs.SKIP_GHCR || 'true' }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,10 +48,10 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          #- { platform: "amd64", goos: "linux", file_ext: "tar.gz" }
+          - { platform: "amd64", goos: "linux", file_ext: "tar.gz" }
           #- { platform: "arm64", goos: "linux", file_ext: "tar.gz" }
           #- { platform: "armv7l", goos: "linux", file_ext: "tar.gz" }
-          - { platform: "amd64", goos: "windows", file_ext: "zip" }
+          #- { platform: "amd64", goos: "windows", file_ext: "zip" }
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -152,78 +152,78 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
-  deb-package:
-    name: debian package - ${{ matrix.job.platform }}
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        job:
-          - { platform: "amd64", goos: "linux", debian_platform: "amd64", crossbuild_package: ""}
-          - { platform: "arm64", goos: "linux", debian_platform: "arm64", crossbuild_package: "crossbuild-essential-arm64" }
-          - { platform: "armv7l", goos: "linux", debian_platform: "armhf", crossbuild_package: "crossbuild-essential-armhf" }
-    steps:
+  # deb-package:
+  #   name: debian package - ${{ matrix.job.platform }}
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       job:
+  #         - { platform: "amd64", goos: "linux", debian_platform: "amd64", crossbuild_package: ""}
+  #         - { platform: "arm64", goos: "linux", debian_platform: "arm64", crossbuild_package: "crossbuild-essential-arm64" }
+  #         - { platform: "armv7l", goos: "linux", debian_platform: "armhf", crossbuild_package: "crossbuild-essential-armhf" }
+  #   steps:
 
-      - name: Checkout
-        uses: actions/checkout@v3
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v2
 
-      - name: Create packaging env
-        run: |
-          sudo apt update
-          DEBIAN_FRONTEND=noninteractive sudo apt install -y devscripts build-essential debhelper pkg-config ${{ matrix.job.crossbuild_package }}
-          mkdir -p debian-build/${{ matrix.job.platform }}/bin
+  #     - name: Create packaging env
+  #       run: |
+  #         sudo apt update
+  #         DEBIAN_FRONTEND=noninteractive sudo apt install -y devscripts build-essential debhelper pkg-config ${{ matrix.job.crossbuild_package }}
+  #         mkdir -p debian-build/${{ matrix.job.platform }}/bin
 
-      - name: Get tag version
-        id: get_tag
-        run: |
-          TAG_VERSION="${GITHUB_REF##*/}"
-          VERSION="${TAG_VERSION#v}" 
-          echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+  #     - name: Get tag version
+  #       id: get_tag
+  #       run: |
+  #         TAG_VERSION="${GITHUB_REF##*/}"
+  #         VERSION="${TAG_VERSION#v}" 
+  #         echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
+  #         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Update changelog
-        run: |
-          DATE=$(date -R)
-          sed -i "1i rustdesk-api-server (${VERSION}) stable; urgency=medium\n\n  * Automatically generated release for version ${VERSION}.\n\n -- GitHub Actions <actions@github.com>  ${DATE}\n" debian/changelog
+  #     - name: Update changelog
+  #       run: |
+  #         DATE=$(date -R)
+  #         sed -i "1i rustdesk-api-server (${VERSION}) stable; urgency=medium\n\n  * Automatically generated release for version ${VERSION}.\n\n -- GitHub Actions <actions@github.com>  ${DATE}\n" debian/changelog
 
-      - name: Download binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: rustdesk-api-${{ matrix.job.goos }}-${{ matrix.job.platform }}
-          path: .
+  #     - name: Download binaries
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: rustdesk-api-${{ matrix.job.goos }}-${{ matrix.job.platform }}
+  #         path: .
 
-      - name: Unzip binaries
-        run: |
-          mkdir -p ${{ matrix.job.platform }}
-          tar -xzf ${{ matrix.job.goos }}-${{ matrix.job.platform }}.tar.gz -C ${{ matrix.job.platform }}
+  #     - name: Unzip binaries
+  #       run: |
+  #         mkdir -p ${{ matrix.job.platform }}
+  #         tar -xzf ${{ matrix.job.goos }}-${{ matrix.job.platform }}.tar.gz -C ${{ matrix.job.platform }}
 
-      - name: Build package for ${{ matrix.job.platform }} arch
-        run: |
-          mv ${{ matrix.job.platform }}/release/apimain debian-build/${{ matrix.job.platform }}/bin/rustdesk-api 
-          mv ${{ matrix.job.platform }}/release/resources/admin resources
-          chmod -v a+x debian-build/${{ matrix.job.platform }}/bin/*
-          mkdir -p data
-          cp -vr debian systemd conf data resources runtime debian-build/${{ matrix.job.platform }}/
-          cat debian/control.tpl | sed 's/{{ ARCH }}/${{ matrix.job.debian_platform }}/' > debian-build/${{ matrix.job.platform }}/debian/control
-          cd debian-build/${{ matrix.job.platform }}/
-          debuild -i -us -uc -b -a${{ matrix.job.debian_platform}}
+  #     - name: Build package for ${{ matrix.job.platform }} arch
+  #       run: |
+  #         mv ${{ matrix.job.platform }}/release/apimain debian-build/${{ matrix.job.platform }}/bin/rustdesk-api 
+  #         mv ${{ matrix.job.platform }}/release/resources/admin resources
+  #         chmod -v a+x debian-build/${{ matrix.job.platform }}/bin/*
+  #         mkdir -p data
+  #         cp -vr debian systemd conf data resources runtime debian-build/${{ matrix.job.platform }}/
+  #         cat debian/control.tpl | sed 's/{{ ARCH }}/${{ matrix.job.debian_platform }}/' > debian-build/${{ matrix.job.platform }}/debian/control
+  #         cd debian-build/${{ matrix.job.platform }}/
+  #         debuild -i -us -uc -b -a${{ matrix.job.debian_platform}}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rustdesk-api-${{ matrix.job.debian_platform }}
-          path: |
-            debian-build/*.deb
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: rustdesk-api-${{ matrix.job.debian_platform }}
+  #         path: |
+  #           debian-build/*.deb
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            debian-build/rustdesk-api-server_*_${{ matrix.job.debian_platform }}.deb
+  #     - name: Create Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           debian-build/rustdesk-api-server_*_${{ matrix.job.debian_platform }}.deb
 
   docker:
     name: Push Docker Image
