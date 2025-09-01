@@ -1,13 +1,14 @@
 package admin
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/admin"
-	"Gwen/http/response"
-	adResp "Gwen/http/response/admin"
-	"Gwen/model"
-	"Gwen/service"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	adResp "github.com/lejianwen/rustdesk-api/v2/http/response/admin"
+	"github.com/lejianwen/rustdesk-api/v2/model"
+	"github.com/lejianwen/rustdesk-api/v2/service"
+	"github.com/lejianwen/rustdesk-api/v2/utils"
 	"gorm.io/gorm"
 	"strconv"
 )
@@ -243,11 +244,10 @@ func (ct *User) ChangeCurPwd(c *gin.Context) {
 		return
 	}
 	u := service.AllService.UserService.CurUser(c)
-	// If the password is not empty, the old password is verified
-	// otherwise, the old password is not verified
+	// Verify the old password only when the account already has one set
 	if !service.AllService.UserService.IsPasswordEmptyByUser(u) {
-		oldPwd := service.AllService.UserService.EncryptPassword(f.OldPassword)
-		if u.Password != oldPwd {
+		ok, _, err := utils.VerifyPassword(u.Password, f.OldPassword)
+		if err != nil || !ok {
 			response.Fail(c, 101, response.TranslateMsg(c, "OldPasswordError"))
 			return
 		}
@@ -296,32 +296,12 @@ func (ct *User) MyOauth(c *gin.Context) {
 
 // groupUsers
 func (ct *User) GroupUsers(c *gin.Context) {
-	q := &admin.GroupUsersQuery{}
-	if err := c.ShouldBindJSON(q); err != nil {
-		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
-		return
-	}
-	u := service.AllService.UserService.CurUser(c)
-	gid := u.GroupId
-	uid := u.Id
-	if service.AllService.UserService.IsAdmin(u) && q.UserId > 0 {
-		nu := service.AllService.UserService.InfoById(q.UserId)
-		gid = nu.GroupId
-		uid = q.UserId
-	}
-	res := service.AllService.UserService.List(1, 999, func(tx *gorm.DB) {
-		tx.Where("group_id = ?", gid)
+	aG := service.AllService.GroupService.List(1, 999, nil)
+	aU := service.AllService.UserService.List(1, 9999, nil)
+	response.Success(c, gin.H{
+		"groups": aG.Groups,
+		"users":  aU.Users,
 	})
-	var data []*adResp.GroupUsersPayload
-	for _, _u := range res.Users {
-		gup := &adResp.GroupUsersPayload{}
-		gup.FromUser(_u)
-		if _u.Id == uid {
-			gup.Status = 0
-		}
-		data = append(data, gup)
-	}
-	response.Success(c, data)
 }
 
 // Register
@@ -340,9 +320,20 @@ func (ct *User) Register(c *gin.Context) {
 		response.Fail(c, 101, errList[0])
 		return
 	}
-	u := service.AllService.UserService.Register(f.Username, f.Email, f.Password)
+	regStatus := model.StatusCode(global.Config.App.RegisterStatus)
+	// 注册状态可能未配置，默认启用
+	if regStatus != model.COMMON_STATUS_DISABLED && regStatus != model.COMMON_STATUS_ENABLE {
+		regStatus = model.COMMON_STATUS_ENABLE
+	}
+
+	u := service.AllService.UserService.Register(f.Username, f.Email, f.Password, regStatus)
 	if u == nil || u.Id == 0 {
 		response.Fail(c, 101, response.TranslateMsg(c, "OperationFailed"))
+		return
+	}
+	if regStatus == model.COMMON_STATUS_DISABLED {
+		// 需要管理员审核
+		response.Fail(c, 101, response.TranslateMsg(c, "RegisterSuccessWaitAdminConfirm"))
 		return
 	}
 	// 注册成功后自动登录

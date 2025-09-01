@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"Gwen/model"
 	"encoding/json"
+	"github.com/lejianwen/rustdesk-api/v2/model"
 )
 
 type AddressBookForm struct {

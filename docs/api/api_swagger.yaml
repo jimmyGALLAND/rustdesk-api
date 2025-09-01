@@ -671,6 +671,44 @@ paths:
       summary: 用户信息
       tags:
       - 用户
+  /device-group/accessible:
+    get:
+      consumes:
+      - application/json
+      description: 机器
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      - description: accessible
+        in: query
+        name: accessible
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DataResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 设备
+      tags:
+      - 群组
   /heartbeat:
     post:
       consumes:
@@ -754,25 +792,6 @@ paths:
       summary: 登出
       tags:
       - 登录
-  /oauth/callback:
-    get:
-      consumes:
-      - application/json
-      description: OauthCallback
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.LoginRes'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: OauthCallback
-      tags:
-      - Oauth
   /oidc/auth:
     post:
       consumes:
@@ -809,6 +828,25 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: OidcAuthQuery
+      tags:
+      - Oauth
+  /oidc/callback:
+    get:
+      consumes:
+      - application/json
+      description: OauthCallback
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.LoginRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: OauthCallback
       tags:
       - Oauth
   /peers:
@@ -935,7 +973,26 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 提交系统信息
       tags:
-      - 地址
+      - System
+  /sysinfo_ver:
+    post:
+      consumes:
+      - application/json
+      description: 获取系统版本信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 获取系统版本信息
+      tags:
+      - System
   /users:
     get:
       consumes:

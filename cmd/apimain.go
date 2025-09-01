@@ -1,25 +1,29 @@
 package main
 
 import (
-	"Gwen/config"
-	"Gwen/global"
-	"Gwen/http"
-	"Gwen/lib/cache"
-	"Gwen/lib/jwt"
-	"Gwen/lib/lock"
-	"Gwen/lib/logger"
-	"Gwen/lib/orm"
-	"Gwen/lib/upload"
-	"Gwen/model"
-	"Gwen/service"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/spf13/cobra"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/lejianwen/rustdesk-api/v2/config"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http"
+	"github.com/lejianwen/rustdesk-api/v2/lib/cache"
+	"github.com/lejianwen/rustdesk-api/v2/lib/jwt"
+	"github.com/lejianwen/rustdesk-api/v2/lib/lock"
+	"github.com/lejianwen/rustdesk-api/v2/lib/logger"
+	"github.com/lejianwen/rustdesk-api/v2/lib/orm"
+	"github.com/lejianwen/rustdesk-api/v2/lib/upload"
+	"github.com/lejianwen/rustdesk-api/v2/model"
+	"github.com/lejianwen/rustdesk-api/v2/service"
+	"github.com/lejianwen/rustdesk-api/v2/utils"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/spf13/cobra"
 )
+
+const DatabaseVersion = 265
 
 // @title 管理系统API
 // @version 1.0
@@ -52,12 +56,16 @@ var resetPwdCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		pwd := args[0]
 		admin := service.AllService.UserService.InfoById(1)
-		err := service.AllService.UserService.UpdatePassword(admin, pwd)
-		if err != nil {
-			fmt.Printf("reset password fail! %v \n", err)
+		if admin.Id == 0 {
+			global.Logger.Warn("user not found! ")
 			return
 		}
-		fmt.Printf("reset password success! \n")
+		err := service.AllService.UserService.UpdatePassword(admin, pwd)
+		if err != nil {
+			global.Logger.Error("reset password fail! ", err)
+			return
+		}
+		global.Logger.Info("reset password success! ")
 	},
 }
 var resetUserPwdCmd = &cobra.Command{
@@ -70,20 +78,24 @@ var resetUserPwdCmd = &cobra.Command{
 		pwd := args[1]
 		uid, err := strconv.Atoi(userId)
 		if err != nil {
-			fmt.Printf("userId must be int! \n")
+			global.Logger.Warn("userId must be int!")
 			return
 		}
 		if uid <= 0 {
-			fmt.Printf("userId must be greater than 0! \n")
+			global.Logger.Warn("userId must be greater than 0! ")
 			return
 		}
 		u := service.AllService.UserService.InfoById(uint(uid))
-		err = service.AllService.UserService.UpdatePassword(u, pwd)
-		if err != nil {
-			fmt.Printf("reset password fail! %v \n", err)
+		if u.Id == 0 {
+			global.Logger.Warn("user not found! ")
 			return
 		}
-		fmt.Printf("reset password success! \n")
+		err = service.AllService.UserService.UpdatePassword(u, pwd)
+		if err != nil {
+			global.Logger.Warn("reset password fail! ", err)
+			return
+		}
+		global.Logger.Info("reset password success!")
 	},
 }
 
@@ -93,7 +105,7 @@ func init() {
 }
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		global.Logger.Error(err)
 		os.Exit(1)
 	}
 }
@@ -132,20 +144,41 @@ func InitGlobal() {
 	}
 	//gorm
 	if global.Config.Gorm.Type == config.TypeMysql {
-		dns := global.Config.Mysql.Username + ":" + global.Config.Mysql.Password + "@(" + global.Config.Mysql.Addr + ")/" + global.Config.Mysql.Dbname + "?charset=utf8mb4&parseTime=True&loc=Local"
+
+		dsn := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			global.Config.Mysql.Username,
+			global.Config.Mysql.Password,
+			global.Config.Mysql.Addr,
+			global.Config.Mysql.Dbname,
+		)
+
 		global.DB = orm.NewMysql(&orm.MysqlConfig{
-			Dns:          dns,
+			Dsn:          dsn,
 			MaxIdleConns: global.Config.Gorm.MaxIdleConns,
 			MaxOpenConns: global.Config.Gorm.MaxOpenConns,
-		})
+		}, global.Logger)
+	} else if global.Config.Gorm.Type == config.TypePostgresql {
+		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
+			global.Config.Postgresql.Host,
+			global.Config.Postgresql.Port,
+			global.Config.Postgresql.User,
+			global.Config.Postgresql.Password,
+			global.Config.Postgresql.Dbname,
+			global.Config.Postgresql.Sslmode,
+			global.Config.Postgresql.TimeZone,
+		)
+		global.DB = orm.NewPostgresql(&orm.PostgresqlConfig{
+			Dsn:          dsn,
+			MaxIdleConns: global.Config.Gorm.MaxIdleConns,
+			MaxOpenConns: global.Config.Gorm.MaxOpenConns,
+		}, global.Logger)
 	} else {
 		//sqlite
 		global.DB = orm.NewSqlite(&orm.SqliteConfig{
 			MaxIdleConns: global.Config.Gorm.MaxIdleConns,
 			MaxOpenConns: global.Config.Gorm.MaxOpenConns,
-		})
+		}, global.Logger)
 	}
-	DatabaseAutoUpdate()
 
 	//validator
 	global.ApiInitValidator()
@@ -162,43 +195,60 @@ func InitGlobal() {
 
 	//jwt
 	//fmt.Println(global.Config.Jwt.PrivateKey)
-	global.Jwt = jwt.NewJwt(global.Config.Jwt.Key, global.Config.Jwt.ExpireDuration*time.Second)
-
+	global.Jwt = jwt.NewJwt(global.Config.Jwt.Key, global.Config.Jwt.ExpireDuration)
 	//locker
 	global.Lock = lock.NewLocal()
+
+	//service
+	service.New(&global.Config, global.DB, global.Logger, global.Jwt, global.Lock)
+
+	global.LoginLimiter = utils.NewLoginLimiter(utils.SecurityPolicy{
+		CaptchaThreshold: global.Config.App.CaptchaThreshold,
+		BanThreshold:     global.Config.App.BanThreshold,
+		AttemptsWindow:   10 * time.Minute,
+		BanDuration:      30 * time.Minute,
+	})
+	global.LoginLimiter.RegisterProvider(utils.B64StringCaptchaProvider{})
+	DatabaseAutoUpdate()
 }
+
 func DatabaseAutoUpdate() {
-	version := 260
+	version := DatabaseVersion
 
 	db := global.DB
 
 	if global.Config.Gorm.Type == config.TypeMysql {
 		//检查存不存在数据库，不存在则创建
 		dbName := db.Migrator().CurrentDatabase()
-		fmt.Println("dbName", dbName)
 		if dbName == "" {
 			dbName = global.Config.Mysql.Dbname
 			// 移除 DSN 中的数据库名称，以便初始连接时不指定数据库
-			dsnWithoutDB := global.Config.Mysql.Username + ":" + global.Config.Mysql.Password + "@(" + global.Config.Mysql.Addr + ")/?charset=utf8mb4&parseTime=True&loc=Local"
+			dsnWithoutDB := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+				global.Config.Mysql.Username,
+				global.Config.Mysql.Password,
+				global.Config.Mysql.Addr,
+				"",
+			)
+
 			//新链接
 			dbWithoutDB := orm.NewMysql(&orm.MysqlConfig{
-				Dns: dsnWithoutDB,
-			})
+				Dsn: dsnWithoutDB,
+			}, global.Logger)
 			// 获取底层的 *sql.DB 对象，并确保在程序退出时关闭连接
 			sqlDBWithoutDB, err := dbWithoutDB.DB()
 			if err != nil {
-				fmt.Printf("获取底层 *sql.DB 对象失败: %v\n", err)
+				global.Logger.Errorf("获取底层 *sql.DB 对象失败: %v", err)
 				return
 			}
 			defer func() {
 				if err := sqlDBWithoutDB.Close(); err != nil {
-					fmt.Printf("关闭连接失败: %v\n", err)
+					global.Logger.Errorf("关闭连接失败: %v", err)
 				}
 			}()
 
 			err = dbWithoutDB.Exec("CREATE DATABASE IF NOT EXISTS " + dbName + " DEFAULT CHARSET utf8mb4").Error
 			if err != nil {
-				fmt.Println(err)
+				global.Logger.Error(err)
 				return
 			}
 		}
@@ -213,6 +263,7 @@ func DatabaseAutoUpdate() {
 		if v.Version < uint(version) {
 			Migrate(uint(version))
 		}
+
 		// 245迁移
 		if v.Version < 245 {
 			//oauths 表的 oauth_type 字段设置为 op同样的值
@@ -235,7 +286,7 @@ func DatabaseAutoUpdate() {
 
 }
 func Migrate(version uint) {
-	fmt.Println("migrating....", version)
+	global.Logger.Info("Migrating....", version)
 	err := global.DB.AutoMigrate(
 		&model.Version{},
 		&model.User{},
@@ -253,9 +304,10 @@ func Migrate(version uint) {
 		&model.AddressBookCollection{},
 		&model.AddressBookCollectionRule{},
 		&model.ServerCmd{},
+		&model.DeviceGroup{},
 	)
 	if err != nil {
-		fmt.Println("migrate err :=>", err)
+		global.Logger.Error("migrate err :=>", err)
 	}
 	global.DB.Create(&model.Version{Version: version})
 	//如果是初次则创建一个默认用户
@@ -289,7 +341,15 @@ func Migrate(version uint) {
 			IsAdmin:  &is_admin,
 			GroupId:  1,
 		}
-		admin.Password = service.AllService.UserService.EncryptPassword("admin")
+
+		// 生成随机密码
+		pwd := utils.RandomString(8)
+		global.Logger.Info("Admin Password Is: ", pwd)
+		var err error
+		admin.Password, err = utils.EncryptPassword(pwd)
+		if err != nil {
+			global.Logger.Fatalf("failed to generate admin password: %v", err)
+		}
 		global.DB.Create(admin)
 	}
 

@@ -1,10 +1,10 @@
 package http
 
 import (
-	"Gwen/global"
-	"Gwen/http/middleware"
-	"Gwen/http/router"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/middleware"
+	"github.com/lejianwen/rustdesk-api/v2/http/router"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
@@ -33,7 +33,7 @@ func ApiInit() {
 	g.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 not found")
 	})
-	g.Use(middleware.Logger(), gin.Recovery())
+	g.Use(middleware.Logger(), middleware.Limiter(), gin.Recovery())
 	router.WebInit(g)
 	router.Init(g)
 	router.ApiInit(g)

@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"Gwen/model"
+	"github.com/lejianwen/rustdesk-api/v2/model"
 )
 
 type BindOauthForm struct {
@@ -15,27 +15,29 @@ type UnBindOauthForm struct {
 	Op string `json:"op" binding:"required"`
 }
 type OauthForm struct {
-	Id           uint   			`json:"id"`
-	Op           string 			`json:"op" validate:"omitempty"`
-	OauthType    string 			`json:"oauth_type" validate:"required"`
-	Issuer	     string 			`json:"issuer" validate:"omitempty,url"`
-	Scopes	   	 string 			`json:"scopes" validate:"omitempty"`
-	ClientId     string 			`json:"client_id" validate:"required"`
-	ClientSecret string 			`json:"client_secret" validate:"required"`
-	RedirectUrl  string 			`json:"redirect_url" validate:"required"`
-	AutoRegister *bool  			`json:"auto_register"`
+	Id           uint   `json:"id"`
+	Op           string `json:"op" validate:"omitempty"`
+	OauthType    string `json:"oauth_type" validate:"required"`
+	Issuer       string `json:"issuer" validate:"omitempty,url"`
+	Scopes       string `json:"scopes" validate:"omitempty"`
+	ClientId     string `json:"client_id" validate:"required"`
+	ClientSecret string `json:"client_secret" validate:"required"`
+	AutoRegister *bool  `json:"auto_register"`
+	PkceEnable   *bool  `json:"pkce_enable"`
+	PkceMethod   string `json:"pkce_method"`
 }
 
 func (of *OauthForm) ToOauth() *model.Oauth {
 	oa := &model.Oauth{
 		Op:           of.Op,
-		OauthType:	  of.OauthType,
+		OauthType:    of.OauthType,
 		ClientId:     of.ClientId,
 		ClientSecret: of.ClientSecret,
-		RedirectUrl:  of.RedirectUrl,
 		AutoRegister: of.AutoRegister,
 		Issuer:       of.Issuer,
 		Scopes:       of.Scopes,
+		PkceEnable:   of.PkceEnable,
+		PkceMethod:   of.PkceMethod,
 	}
 	oa.Id = of.Id
 	return oa

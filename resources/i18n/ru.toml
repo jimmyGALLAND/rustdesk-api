@@ -33,6 +33,11 @@ description = "No access."
 one = "Нет доступа."
 other = "Нет доступа."
 
+[NeedLogin]
+description = "Need login."
+one = "Пожалуйста, войдите в систему."
+other = "Пожалуйста, войдите в систему."
+
 [UsernameOrPasswordError]
 description = "Username or password error."
 one = "Неправильное имя пользователя или пароль."
@@ -142,3 +147,23 @@ other = "Требуется капча."
 description = "Captcha error."
 one = "Ошибка капчи."
 other = "Ошибка капчи."
+
+[PwdLoginDisabled]
+description = "Password login disabled."
+one = "Вход по паролю отключен."
+other = "Вход по паролю отключен."
+
+[CannotShareToSelf]
+description = "Cannot share to self."
+one = "Нельзя поделиться с собой."
+other = "Нельзя поделиться с собой."
+
+[Banned]
+description = "Banned."
+one = "Заблокировано."
+other = "Заблокировано."
+
+[RegisterSuccessWaitAdminConfirm]
+description = "Register success wait admin confirm."
+one = "Регистрация прошла успешно, ожидайте подтверждения администратора."
+other = "Регистрация прошла успешно, ожидайте подтверждения администратора."

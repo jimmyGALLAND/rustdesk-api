@@ -1,10 +1,10 @@
 package my
 
 import (
-	"Gwen/http/request/admin"
-	"Gwen/http/response"
-	"Gwen/service"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 	"gorm.io/gorm"
 	"time"
 )

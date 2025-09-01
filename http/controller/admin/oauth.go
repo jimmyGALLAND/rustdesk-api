@@ -1,13 +1,14 @@
 package admin
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/admin"
-	adminReq "Gwen/http/request/admin"
-	"Gwen/http/response"
-	"Gwen/service"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	adminReq "github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 )
 
 type Oauth struct {
@@ -43,20 +44,22 @@ func (o *Oauth) ToBind(c *gin.Context) {
 		return
 	}
 
-	err, code, url := service.AllService.OauthService.BeginAuth(f.Op)
+	err, state, verifier, nonce, url := service.AllService.OauthService.BeginAuth(f.Op)
 	if err != nil {
 		response.Error(c, response.TranslateMsg(c, err.Error()))
 		return
 	}
 
-	service.AllService.OauthService.SetOauthCache(code, &service.OauthCacheItem{
-		Action: service.OauthActionTypeBind,
-		Op:     f.Op,
-		UserId: u.Id,
+	service.AllService.OauthService.SetOauthCache(state, &service.OauthCacheItem{
+		Action:   service.OauthActionTypeBind,
+		Op:       f.Op,
+		UserId:   u.Id,
+		Verifier: verifier,
+		Nonce:    nonce,
 	}, 5*60)
 
 	response.Success(c, gin.H{
-		"code": code,
+		"code": state,
 		"url":  url,
 	})
 }
@@ -66,16 +69,16 @@ func (o *Oauth) Confirm(c *gin.Context) {
 	j := &adminReq.OauthConfirmForm{}
 	err := c.ShouldBindJSON(j)
 	if err != nil {
-		response.Fail(c, 101, "参数错误"+err.Error())
+		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError")+err.Error())
 		return
 	}
 	if j.Code == "" {
-		response.Fail(c, 101, "参数错误: code 不存在")
+		response.Fail(c, 101, response.TranslateMsg(c, "ParamsError"))
 		return
 	}
 	v := service.AllService.OauthService.GetOauthCache(j.Code)
 	if v == nil {
-		response.Fail(c, 101, "授权已过期")
+		response.Fail(c, 101, response.TranslateMsg(c, "OauthExpired"))
 		return
 	}
 	u := service.AllService.UserService.CurUser(c)

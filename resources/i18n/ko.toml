@@ -33,6 +33,11 @@ description = "No access."
 one = "접근할 수 없습니다."
 other = "접근할 수 없습니다."
 
+[NeedLogin]
+description = "Need login."
+one = "먼저 로그인해주세요."
+other = "먼저 로그인해주세요."
+
 [UsernameOrPasswordError]
 description = "Username or password error."
 one = "사용자 이름이나 비밀번호가 올바르지 않습니다."
@@ -136,3 +141,23 @@ other = "Captcha가 필요합니다."
 description = "Captcha error."
 one = "Captcha 오류."
 other = "Captcha 오류."
+
+[PwdLoginDisabled]
+description = "Password login disabled."
+one = "비밀번호 로그인이 비활성화되었습니다."
+other = "비밀번호 로그인이 비활성화되었습니다."
+
+[CannotShareToSelf]
+description = "Cannot share to self."
+one = "자기 자신에게 공유할 수 없습니다."
+other = "자기 자신에게 공유할 수 없습니다."
+
+[Banned]
+description = "Banned."
+one = "금지됨."
+other = "금지됨."
+
+[RegisterSuccessWaitAdminConfirm]
+description = "Register success wait admin confirm."
+one = "가입 성공, 관리자 확인 대기 중."
+other = "가입 성공, 관리자 확인 대기 중."

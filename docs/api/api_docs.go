@@ -767,6 +767,66 @@ const docTemplateapi = `{
                 }
             }
         },
+        "/device-group/accessible": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "机器",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "群组"
+                ],
+                "summary": "设备",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "accessible",
+                        "name": "accessible",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DataResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/heartbeat": {
             "post": {
                 "description": "心跳",
@@ -894,35 +954,6 @@ const docTemplateapi = `{
                 }
             }
         },
-        "/oauth/callback": {
-            "get": {
-                "description": "OauthCallback",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Oauth"
-                ],
-                "summary": "OauthCallback",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.LoginRes"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/oidc/auth": {
             "post": {
                 "description": "OidcAuth",
@@ -965,6 +996,35 @@ const docTemplateapi = `{
                     "Oauth"
                 ],
                 "summary": "OidcAuthQuery",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.LoginRes"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oidc/callback": {
+            "get": {
+                "description": "OauthCallback",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Oauth"
+                ],
+                "summary": "OauthCallback",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1148,7 +1208,7 @@ const docTemplateapi = `{
                     "application/json"
                 ],
                 "tags": [
-                    "地址"
+                    "System"
                 ],
                 "summary": "提交系统信息",
                 "parameters": [
@@ -1165,6 +1225,35 @@ const docTemplateapi = `{
                 "responses": {
                     "200": {
                         "description": "SYSINFO_UPDATED,ID_NOT_FOUND",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sysinfo_ver": {
+            "post": {
+                "description": "获取系统版本信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "获取系统版本信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }

@@ -33,6 +33,11 @@ description = "No access."
 one = "无权限。"
 other = "无权限。"
 
+[NeedLogin]
+description = "Need login."
+one = "请先登录。"
+other = "请先登录。"
+
 [UsernameOrPasswordError]
 description = "Username or password error."
 one = "用户名或密码错误。"
@@ -135,3 +140,23 @@ other = "需要验证码。"
 description = "Captcha error."
 one = "验证码错误。"
 other = "验证码错误。"
+
+[PwdLoginDisabled]
+description = "Password login disabled."
+one = "密码登录已禁用。"
+other = "密码登录已禁用。"
+
+[CannotShareToSelf]
+description = "Cannot share to self."
+one = "不能共享给自己。"
+other = "不能共享给自己。"
+
+[Banned]
+description = "Banned."
+one = "已被封禁。"
+other = "已被封禁。"
+
+[RegisterSuccessWaitAdminConfirm]
+description = "Register success, wait for admin confirm."
+one = "注册成功，请等待管理员审核。"
+other = "注册成功，请等待管理员审核。"

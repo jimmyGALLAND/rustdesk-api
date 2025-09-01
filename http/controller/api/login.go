@@ -1,15 +1,15 @@
 package api
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/api"
-	"Gwen/http/response"
-	apiResp "Gwen/http/response/api"
-	"Gwen/model"
-	"Gwen/service"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/api"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	apiResp "github.com/lejianwen/rustdesk-api/v2/http/response/api"
+	"github.com/lejianwen/rustdesk-api/v2/model"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 	"net/http"
 )
 
@@ -27,10 +27,20 @@ type Login struct {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /login [post]
 func (l *Login) Login(c *gin.Context) {
+	if global.Config.App.DisablePwdLogin {
+		response.Error(c, response.TranslateMsg(c, "PwdLoginDisabled"))
+		return
+	}
+
+	// 检查登录限制
+	loginLimiter := global.LoginLimiter
+	clientIp := c.ClientIP()
+
 	f := &api.LoginForm{}
 	err := c.ShouldBindJSON(f)
 	//fmt.Println(f)
 	if err != nil {
+		loginLimiter.RecordFailedAttempt(clientIp)
 		global.Logger.Warn(fmt.Sprintf("Login Fail: %s %s %s", "ParamsError", c.RemoteIP(), c.ClientIP()))
 		response.Error(c, response.TranslateMsg(c, "ParamsError")+err.Error())
 		return
@@ -38,6 +48,7 @@ func (l *Login) Login(c *gin.Context) {
 
 	errList := global.Validator.ValidStruct(c, f)
 	if len(errList) > 0 {
+		loginLimiter.RecordFailedAttempt(clientIp)
 		global.Logger.Warn(fmt.Sprintf("Login Fail: %s %s %s", "ParamsError", c.RemoteIP(), c.ClientIP()))
 		response.Error(c, errList[0])
 		return
@@ -46,8 +57,14 @@ func (l *Login) Login(c *gin.Context) {
 	u := service.AllService.UserService.InfoByUsernamePassword(f.Username, f.Password)
 
 	if u.Id == 0 {
+		loginLimiter.RecordFailedAttempt(clientIp)
 		global.Logger.Warn(fmt.Sprintf("Login Fail: %s %s %s", "UsernameOrPasswordError", c.RemoteIP(), c.ClientIP()))
 		response.Error(c, response.TranslateMsg(c, "UsernameOrPasswordError"))
+		return
+	}
+
+	if !service.AllService.UserService.CheckUserEnable(u) {
+		response.Error(c, response.TranslateMsg(c, "UserDisabled"))
 		return
 	}
 
@@ -85,7 +102,9 @@ func (l *Login) Login(c *gin.Context) {
 // @Router /login-options [get]
 func (l *Login) LoginOptions(c *gin.Context) {
 	ops := service.AllService.OauthService.GetOauthProviders()
-	ops = append(ops, model.OauthTypeWebauth)
+	if global.Config.App.WebSso {
+		ops = append(ops, model.OauthTypeWebauth)
+	}
 	var oidcItems []map[string]string
 	for _, v := range ops {
 		oidcItems = append(oidcItems, map[string]string{"name": v})

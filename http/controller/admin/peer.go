@@ -1,11 +1,11 @@
 package admin
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/admin"
-	"Gwen/http/response"
-	"Gwen/service"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 	"gorm.io/gorm"
 	"strconv"
 	"time"
@@ -107,6 +107,15 @@ func (ct *Peer) List(c *gin.Context) {
 		}
 		if query.Uuids != "" {
 			tx.Where("uuid in (?)", query.Uuids)
+		}
+		if query.Username != "" {
+			tx.Where("username like ?", "%"+query.Username+"%")
+		}
+		if query.Ip != "" {
+			tx.Where("last_online_ip like ?", "%"+query.Ip+"%")
+		}
+		if query.Alias != "" {
+			tx.Where("alias like ?", "%"+query.Alias+"%")
 		}
 	})
 	response.Success(c, res)

@@ -14,12 +14,15 @@ const (
 	OauthTypeGoogle  string = "google"
 	OauthTypeOidc    string = "oidc"
 	OauthTypeWebauth string = "webauth"
+	OauthTypeLinuxdo string = "linuxdo"
+	PKCEMethodS256   string = "S256"
+	PKCEMethodPlain  string = "plain"
 )
 
 // Validate the oauth type
 func ValidateOauthType(oauthType string) error {
 	switch oauthType {
-	case OauthTypeGithub, OauthTypeGoogle, OauthTypeOidc, OauthTypeWebauth:
+	case OauthTypeGithub, OauthTypeGoogle, OauthTypeOidc, OauthTypeWebauth, OauthTypeLinuxdo:
 		return nil
 	default:
 		return errors.New("invalid Oauth type")
@@ -27,8 +30,9 @@ func ValidateOauthType(oauthType string) error {
 }
 
 const (
-	UserEndpointGithub string = "https://api.github.com/user"
-	IssuerGoogle       string = "https://accounts.google.com"
+	UserEndpointGithub  string = "https://api.github.com/user"
+	UserEndpointLinuxdo string = "https://connect.linux.do/api/user"
+	IssuerGoogle        string = "https://accounts.google.com"
 )
 
 type Oauth struct {
@@ -37,10 +41,12 @@ type Oauth struct {
 	OauthType    string `json:"oauth_type"`
 	ClientId     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
-	RedirectUrl  string `json:"redirect_url"`
+	//RedirectUrl  string `json:"redirect_url"`
 	AutoRegister *bool  `json:"auto_register"`
 	Scopes       string `json:"scopes"`
 	Issuer       string `json:"issuer"`
+	PkceEnable   *bool  `json:"pkce_enable"`
+	PkceMethod   string `json:"pkce_method"`
 	TimeModel
 }
 
@@ -56,6 +62,8 @@ func (oa *Oauth) FormatOauthInfo() error {
 		oa.Op = OauthTypeGithub
 	case OauthTypeGoogle:
 		oa.Op = OauthTypeGoogle
+	case OauthTypeLinuxdo:
+		oa.Op = OauthTypeLinuxdo
 	}
 	// check if the op is empty, set the default value
 	op := strings.TrimSpace(oa.Op)
@@ -67,6 +75,13 @@ func (oa *Oauth) FormatOauthInfo() error {
 	// If the oauth type is google and the issuer is empty, set the issuer to the default value
 	if oauthType == OauthTypeGoogle && issuer == "" {
 		oa.Issuer = IssuerGoogle
+	}
+	if oa.PkceEnable == nil {
+		oa.PkceEnable = new(bool)
+		*oa.PkceEnable = false
+	}
+	if oa.PkceMethod == "" {
+		oa.PkceMethod = PKCEMethodS256
 	}
 	return nil
 }
@@ -138,6 +153,24 @@ func (gu *GithubUser) ToOauthUser() *OauthUser {
 		Email:         gu.Email,
 		VerifiedEmail: gu.VerifiedEmail,
 		Picture:       gu.AvatarUrl,
+	}
+}
+
+type LinuxdoUser struct {
+	OauthUserBase
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar_url"`
+}
+
+func (lu *LinuxdoUser) ToOauthUser() *OauthUser {
+	return &OauthUser{
+		OpenId:        strconv.Itoa(lu.Id),
+		Name:          lu.Name,
+		Username:      strings.ToLower(lu.Username),
+		Email:         lu.Email,
+		VerifiedEmail: true, // linux.do 用户邮箱默认已验证
+		Picture:       lu.Avatar,
 	}
 }
 

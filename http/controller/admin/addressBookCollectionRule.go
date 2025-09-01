@@ -1,12 +1,12 @@
 package admin
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/admin"
-	"Gwen/http/response"
-	"Gwen/model"
-	"Gwen/service"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/model"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 	"gorm.io/gorm"
 	"strconv"
 )
@@ -120,7 +120,7 @@ func (abcr *AddressBookCollectionRule) CheckForm(t *model.AddressBookCollectionR
 	//check to_id
 	if t.Type == model.ShareAddressBookRuleTypePersonal {
 		if t.ToId == t.UserId {
-			return "ParamsError", false
+			return "CannotShareToSelf", false
 		}
 		tou := service.AllService.UserService.InfoById(t.ToId)
 		if tou.Id == 0 {
@@ -135,7 +135,7 @@ func (abcr *AddressBookCollectionRule) CheckForm(t *model.AddressBookCollectionR
 		return "ParamsError", false
 	}
 	// 重复检查
-	ex := service.AllService.AddressBookService.RulePersonalInfoByToIdAndCid(t.ToId, t.CollectionId)
+	ex := service.AllService.AddressBookService.RuleInfoByToIdAndCid(t.Type, t.ToId, t.CollectionId)
 	if t.Id == 0 && ex.Id > 0 {
 		return "ItemExists", false
 	}

@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"Gwen/global"
 	"fmt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -14,11 +13,11 @@ type SqliteConfig struct {
 	MaxOpenConns int
 }
 
-func NewSqlite(sqliteConf *SqliteConfig) *gorm.DB {
+func NewSqlite(sqliteConf *SqliteConfig, logwriter logger.Writer) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("./data/rustdeskapi.db"), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger: logger.New(
-			global.Logger, // io writer
+			logwriter, // io writer
 			logger.Config{
 				SlowThreshold:             time.Second, // Slow SQL threshold
 				LogLevel:                  logger.Warn, // Log level

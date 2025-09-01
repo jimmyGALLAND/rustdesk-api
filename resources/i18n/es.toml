@@ -33,6 +33,11 @@ description = "No access."
 one = "Sin acceso."
 other = "Sin acceso."
 
+[NeedLogin]
+description = "Need login."
+one = "Por favor inicie sesión primero."
+other = "Por favor inicie sesión primero."
+
 [UsernameOrPasswordError]
 description = "Username or password error."
 one = "Error de usuario o contraseña."
@@ -142,3 +147,23 @@ other = "Captcha requerido."
 description = "Captcha error."
 one = "Error de captcha."
 other = "Error de captcha."
+
+[PwdLoginDisabled]
+description = "Password login disabled."
+one = "Inicio de sesión con contraseña deshabilitado."
+other = "Inicio de sesión con contraseña deshabilitado."
+
+[CannotShareToSelf]
+description = "Cannot share to self."
+one = "No se puede compartir con uno mismo."
+other = "No se puede compartir con uno mismo."
+
+[Banned]
+description = "Banned."
+one = "Prohibido."
+other = "Prohibido."
+
+[RegisterSuccessWaitAdminConfirm]
+description = "Register success, wait admin confirm."
+one = "Registro exitoso, espere la confirmación del administrador."
+other = "Registro exitoso, espere la confirmación del administrador."

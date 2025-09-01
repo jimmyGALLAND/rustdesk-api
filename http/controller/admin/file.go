@@ -1,11 +1,11 @@
 package admin
 
 import (
-	"Gwen/global"
-	"Gwen/http/response"
-	"Gwen/lib/upload"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/lib/upload"
 	"os"
 	"time"
 )
@@ -38,7 +38,7 @@ func (f *File) Notify(c *gin.Context) {
 
 	res := global.Oss.Verify(c.Request)
 	if !res {
-		response.Fail(c, 101, "权限错误")
+		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
 		return
 	}
 	fm := &FileBack{}

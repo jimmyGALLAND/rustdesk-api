@@ -1,6 +1,6 @@
 package admin
 
-import "Gwen/model"
+import "github.com/lejianwen/rustdesk-api/v2/model"
 
 type PeerForm struct {
 	RowId    uint   `json:"row_id" `
@@ -12,6 +12,8 @@ type PeerForm struct {
 	Username string `json:"username"`
 	Uuid     string `json:"uuid"`
 	Version  string `json:"version"`
+	GroupId  uint   `json:"group_id"`
+	Alias    string `json:"alias"`
 }
 
 type PeerBatchDeleteForm struct {
@@ -30,6 +32,8 @@ func (f *PeerForm) ToPeer() *model.Peer {
 		Username: f.Username,
 		Uuid:     f.Uuid,
 		Version:  f.Version,
+		GroupId:  f.GroupId,
+		Alias:    f.Alias,
 	}
 }
 
@@ -39,6 +43,9 @@ type PeerQuery struct {
 	Id       string `json:"id" form:"id"`
 	Hostname string `json:"hostname" form:"hostname"`
 	Uuids    string `json:"uuids" form:"uuids"`
+	Ip       string `json:"ip" form:"ip"`
+	Username string `json:"username" form:"username"`
+	Alias    string `json:"alias" form:"alias"`
 }
 
 type SimpleDataQuery struct {

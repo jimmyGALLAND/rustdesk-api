@@ -33,6 +33,11 @@ description = "No access."
 one = "No access."
 other = "No access."
 
+[NeedLogin]
+description = "Need login."
+one = "Please log in first."
+other = "Please log in first."
+
 [UsernameOrPasswordError]
 description = "Username or password error."
 one = "Username or password error."
@@ -133,3 +138,23 @@ other = "Captcha required."
 description = "Captcha error."
 one = "Captcha error."
 other = "Captcha error."
+
+[PwdLoginDisabled]
+description = "Password login disabled."
+one = "Password login disabled."
+other = "Password login disabled."
+
+[CannotShareToSelf]
+description = "Cannot share to self."
+one = "Cannot share to self."
+other = "Cannot share to self."
+
+[Banned]
+description = "Banned."
+one = "Banned."
+other = "Banned."
+
+[RegisterSuccessWaitAdminConfirm]
+description = "Register success, wait admin confirm."
+one = "Register success, wait admin confirm."
+other = "Register success, wait admin confirm."

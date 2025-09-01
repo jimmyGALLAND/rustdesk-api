@@ -1,6 +1,6 @@
 package api
 
-import "Gwen/model"
+import "github.com/lejianwen/rustdesk-api/v2/model"
 
 type AbList struct {
 	Peers     []*model.AddressBook `json:"peers,omitempty"`

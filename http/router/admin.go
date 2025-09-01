@@ -1,12 +1,12 @@
 package router
 
 import (
-	_ "Gwen/docs/admin"
-	"Gwen/global"
-	"Gwen/http/controller/admin"
-	"Gwen/http/controller/admin/my"
-	"Gwen/http/middleware"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lejianwen/rustdesk-api/v2/docs/admin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/controller/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/controller/admin/my"
+	"github.com/lejianwen/rustdesk-api/v2/http/middleware"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -22,7 +22,10 @@ func Init(g *gin.Engine) {
 	adg := g.Group("/api/admin")
 	LoginBind(adg)
 	adg.POST("/user/register", (&admin.User{}).Register)
-	adg.Use(middleware.AdminAuth())
+
+	ConfigBind(adg)
+
+	adg.Use(middleware.BackendUserAuth())
 	//FileBind(adg)
 	UserBind(adg)
 	GroupBind(adg)
@@ -35,7 +38,6 @@ func Init(g *gin.Engine) {
 	AddressBookCollectionBind(adg)
 	AddressBookCollectionRuleBind(adg)
 	UserTokenBind(adg)
-	ConfigBind(adg)
 
 	//deprecated by ConfigBind
 	//rs := &admin.Rustdesk{}
@@ -47,7 +49,7 @@ func Init(g *gin.Engine) {
 	MyBind(adg)
 
 	RustdeskCmdBind(adg)
-
+	DeviceGroupBind(adg)
 	//访问静态文件
 	//g.StaticFS("/upload", http.Dir(global.Config.Gin.ResourcesPath+"/upload"))
 }
@@ -96,6 +98,18 @@ func GroupBind(rg *gin.RouterGroup) {
 	aR := rg.Group("/group").Use(middleware.AdminPrivilege())
 	{
 		cont := &admin.Group{}
+		aR.GET("/list", cont.List)
+		aR.GET("/detail/:id", cont.Detail)
+		aR.POST("/create", cont.Create)
+		aR.POST("/update", cont.Update)
+		aR.POST("/delete", cont.Delete)
+	}
+}
+
+func DeviceGroupBind(rg *gin.RouterGroup) {
+	aR := rg.Group("/device_group").Use(middleware.AdminPrivilege())
+	{
+		cont := &admin.DeviceGroup{}
 		aR.GET("/list", cont.List)
 		aR.GET("/detail/:id", cont.Detail)
 		aR.POST("/create", cont.Create)
@@ -221,9 +235,13 @@ func UserTokenBind(rg *gin.RouterGroup) {
 func ConfigBind(rg *gin.RouterGroup) {
 	aR := rg.Group("/config")
 	rs := &admin.Config{}
+
+	aR.GET("/admin", rs.AdminConfig)
+
+	aR.Use(middleware.BackendUserAuth())
 	aR.GET("/server", rs.ServerConfig)
 	aR.GET("/app", rs.AppConfig)
-	aR.GET("/admin", rs.AdminConfig)
+
 }
 
 /*

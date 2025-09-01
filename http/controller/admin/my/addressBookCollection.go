@@ -1,12 +1,12 @@
 package my
 
 import (
-	"Gwen/global"
-	"Gwen/http/request/admin"
-	"Gwen/http/response"
-	"Gwen/model"
-	"Gwen/service"
 	"github.com/gin-gonic/gin"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/request/admin"
+	"github.com/lejianwen/rustdesk-api/v2/http/response"
+	"github.com/lejianwen/rustdesk-api/v2/model"
+	"github.com/lejianwen/rustdesk-api/v2/service"
 	"gorm.io/gorm"
 )
 
@@ -98,10 +98,10 @@ func (abc *AddressBookCollection) Update(c *gin.Context) {
 		return
 	}
 	u := service.AllService.UserService.CurUser(c)
-	if f.UserId != u.Id {
-		response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
-		return
-	}
+	//if f.UserId != u.Id {
+	//	response.Fail(c, 101, response.TranslateMsg(c, "NoAccess"))
+	//	return
+	//}
 	ex := service.AllService.AddressBookService.CollectionInfoById(f.Id)
 	if ex.Id == 0 {
 		response.Fail(c, 101, response.TranslateMsg(c, "ItemNotFound"))

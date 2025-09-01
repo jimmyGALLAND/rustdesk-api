@@ -1,11 +1,11 @@
 package router
 
 import (
-	_ "Gwen/docs/api"
-	"Gwen/global"
-	"Gwen/http/controller/api"
-	"Gwen/http/middleware"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lejianwen/rustdesk-api/v2/docs/api"
+	"github.com/lejianwen/rustdesk-api/v2/global"
+	"github.com/lejianwen/rustdesk-api/v2/http/controller/api"
+	"github.com/lejianwen/rustdesk-api/v2/http/middleware"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
@@ -18,6 +18,8 @@ func ApiInit(g *gin.Engine) {
 	if global.Config.App.ShowSwagger == 1 {
 		g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName("api")))
 	}
+	// 加载 HTML 模板
+	g.LoadHTMLGlob("resources/templates/*")
 
 	frg := g.Group("/api")
 
@@ -46,11 +48,17 @@ func ApiInit(g *gin.Engine) {
 		//api/oauth/callback
 		frg.GET("/oauth/callback", o.OauthCallback)
 		frg.GET("/oauth/login", o.OauthCallback)
+		frg.GET("/oauth/msg", o.Message)
+
+		frg.GET("/oidc/callback", o.OauthCallback)
+		frg.GET("/oidc/login", o.OauthCallback)
+		frg.GET("/oidc/msg", o.Message)
 	}
 	{
 		pe := &api.Peer{}
 		//提交系统信息
 		frg.POST("/sysinfo", pe.SysInfo)
+		frg.POST("/sysinfo_ver", pe.SysInfoVer)
 	}
 
 	if global.Config.App.WebClient == 1 {
@@ -79,6 +87,8 @@ func ApiInit(g *gin.Engine) {
 		gr := &api.Group{}
 		frg.GET("/users", gr.Users)
 		frg.GET("/peers", gr.Peers)
+		// /api/device-group/accessible?current=1&pageSize=100
+		frg.GET("/device-group/accessible", gr.Device)
 	}
 
 	{
@@ -88,6 +98,7 @@ func ApiInit(g *gin.Engine) {
 		//更新地址
 		frg.POST("/ab", ab.UpAb)
 	}
+
 	PersonalRoutes(frg)
 	//访问静态文件
 	g.StaticFS("/upload", http.Dir(global.Config.Gin.ResourcesPath+"/public/upload"))

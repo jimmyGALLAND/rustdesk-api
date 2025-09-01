@@ -1,6 +1,6 @@
 package admin
 
-import "Gwen/model"
+import "github.com/lejianwen/rustdesk-api/v2/model"
 
 type LoginPayload struct {
 	Username   string   `json:"username"`
@@ -21,16 +21,4 @@ func (lp *LoginPayload) FromUser(user *model.User) {
 type UserOauthItem struct {
 	Op     string `json:"op"`
 	Status int    `json:"status"`
-}
-
-type GroupUsersPayload struct {
-	Id       uint   `json:"id"`
-	Username string `json:"username"`
-	Status   int    `json:"status"`
-}
-
-func (g *GroupUsersPayload) FromUser(user *model.User) {
-	g.Id = user.Id
-	g.Username = user.Username
-	g.Status = 1
 }
