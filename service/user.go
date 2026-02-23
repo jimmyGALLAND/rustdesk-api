@@ -528,4 +528,3 @@ func (us *UserService) IsUsernameExistsLocal(username string) bool {
 func (us *UserService) IsEmailExistsLdap(email string) bool {
 	return AllService.LdapService.IsEmailExists(email)
 }
-
