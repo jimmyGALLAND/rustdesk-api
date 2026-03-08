@@ -160,3 +160,18 @@ other = "已被封禁。"
 description = "Register success, wait for admin confirm."
 one = "注册成功，请等待管理员审核。"
 other = "注册成功，请等待管理员审核。"
+
+[LabelUsername]
+one = "用户名"
+
+[LabelPassword]
+one = "密码"
+
+[LabelPage]
+one = "页码"
+
+[LabelPageSize]
+one = "每页数量"
+
+[LabelStatus]
+one = "状态"

@@ -50,3 +50,18 @@ func InitI18n() {
 	//fmt.Println(err, personUnreadEmails)
 
 }
+
+func T(key string) string {
+
+	localizer := Localizer(Config.Lang)
+
+	msg, err := localizer.Localize(&i18n.LocalizeConfig{
+		MessageID: key,
+	})
+
+	if err != nil {
+		return key
+	}
+
+	return msg
+}

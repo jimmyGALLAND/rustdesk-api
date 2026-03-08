@@ -1,6 +1,7 @@
 package global
 
 import (
+	"log"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/es"
@@ -22,9 +23,8 @@ import (
 )
 
 func ApiInitValidator() {
-	validate := validator.New()
+	validate := validator.New(validator.WithRequiredStructEnabled())
 
-	// 定义不同的语言翻译
 	enT := en.New()
 	cn := zh_Hans_CN.New()
 	koT := ko.New()
@@ -43,45 +43,35 @@ func ApiInitValidator() {
 	frTrans, _ := uni.GetTranslator("fr")
 	zhTwTrans, _ := uni.GetTranslator("zh_Hant")
 
-	err := zh_translations.RegisterDefaultTranslations(validate, zhTrans)
-	if err != nil {
-		panic(err)
+	trans_items := []struct {
+		register func(*validator.Validate, ut.Translator) error
+		trans    ut.Translator
+	}{
+		{zh_translations.RegisterDefaultTranslations, zhTrans},
+		{en_translations.RegisterDefaultTranslations, enTrans},
+		{ko_translations.RegisterDefaultTranslations, koTrans},
+		{ru_translations.RegisterDefaultTranslations, ruTrans},
+		{es_translations.RegisterDefaultTranslations, esTrans},
+		{fr_translations.RegisterDefaultTranslations, frTrans},
+		{zh_tw_translations.RegisterDefaultTranslations, zhTwTrans},
 	}
-	err = en_translations.RegisterDefaultTranslations(validate, enTrans)
-	if err != nil {
-		panic(err)
+	
+	for _, trans_item := range trans_items {
+		if err := trans_item.register(validate, trans_item.trans); err != nil {
+			log.Fatalf("validator translation error: %v", err)
+		}
 	}
-
-	err = ko_translations.RegisterDefaultTranslations(validate, koTrans)
-	if err != nil {
-		panic(err)
-	}
-	err = ru_translations.RegisterDefaultTranslations(validate, ruTrans)
-	if err != nil {
-		panic(err)
-	}
-	err = es_translations.RegisterDefaultTranslations(validate, esTrans)
-	if err != nil {
-		panic(err)
-	}
-	err = fr_translations.RegisterDefaultTranslations(validate, frTrans)
-	if err != nil {
-		panic(err)
-	}
-	err = zh_tw_translations.RegisterDefaultTranslations(validate, zhTwTrans)
-	if err != nil {
-		panic(err)
-	}
-
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		label := field.Tag.Get("label")
 		if label == "" {
 			return field.Name
 		}
-		return label
+
+		return T(label)
 	})
+
 	Validator.Validate = validate
-	Validator.UT = uni // 存储 Universal Translator
+	Validator.UT = uni 
 	Validator.VTrans = zhTrans
 
 	Validator.ValidStruct = func(ctx *gin.Context, i interface{}) []string {
@@ -91,17 +81,7 @@ func ApiInitValidator() {
 			lang = Config.Lang
 		}
 		trans := getTranslatorForLang(lang)
-		errList := make([]string, 0, 10)
-		if err != nil {
-			if _, ok := err.(*validator.InvalidValidationError); ok {
-				errList = append(errList, err.Error())
-				return errList
-			}
-			for _, err2 := range err.(validator.ValidationErrors) {
-				errList = append(errList, err2.Translate(trans))
-			}
-		}
-		return errList
+		return translateErrors(err, trans)
 	}
 	Validator.ValidVar = func(ctx *gin.Context, field interface{}, tag string) []string {
 		err := Validator.Validate.Var(field, tag)
@@ -110,19 +90,30 @@ func ApiInitValidator() {
 			lang = Config.Lang
 		}
 		trans := getTranslatorForLang(lang)
-		errList := make([]string, 0, 10)
-		if err != nil {
-			if _, ok := err.(*validator.InvalidValidationError); ok {
-				errList = append(errList, err.Error())
-				return errList
-			}
-			for _, err2 := range err.(validator.ValidationErrors) {
-				errList = append(errList, err2.Translate(trans))
-			}
-		}
-		return errList
+		return translateErrors(err, trans)
 	}
 }
+
+func translateErrors(err error, trans ut.Translator) []string {
+
+	errList := make([]string, 0, 10)
+
+	if err != nil {
+
+		if _, ok := err.(*validator.InvalidValidationError); ok {
+			errList = append(errList, err.Error())
+			return errList
+		}
+
+		for _, e := range err.(validator.ValidationErrors) {
+			errList = append(errList, e.Translate(trans))
+		}
+	}
+
+	return errList
+}
+
+
 func getTranslatorForLang(lang string) ut.Translator {
 	switch lang {
 	case "zh_CN":
