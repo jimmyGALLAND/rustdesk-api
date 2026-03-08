@@ -167,3 +167,51 @@ other = "Banni."
 description = "Register success wait admin confirm."
 one = "Inscription réussie, veuillez attendre la confirmation de l'administrateur."
 other = "Inscription réussie, veuillez attendre la confirmation de l'administrateur."
+
+[LabelUsername]
+one = "Nom d'utilisateur"
+other = "Noms des utilisateurs"
+
+[LabelPassword]
+one = "Mot de passe"
+other = "Mots de passe"
+
+[LabelId]
+one = "Identifiant"
+other = "Identifiants"
+
+[LabelType]
+one = "Type"
+other = "Types"
+
+[LabelUuid]
+one = "UUID"
+other = "UUIDs"
+
+[LabelAutoLogin]
+one = "Connexion automatique"
+other = "Connexion automatique"
+
+[LabelDeviceInfoName]
+one = "Nom de l'appareil"
+other = "Noms des appareils"
+
+[LabelDeviceInfoOs]
+one = "Système d'exploitation"
+other = "Système d'exploitation"
+
+[LabelPage]
+one = "Numéro de page"
+other = "Numéro de page"
+
+[LabelPageSize]
+one = "Taille de la page"
+other = "Taille de la page"
+
+[LabelStatus]
+one = "Statut"
+other = "Statut"
+
+[LabelAccessible]
+one = "Accessibilité"
+other = "Accessibilité"

@@ -29,12 +29,12 @@ on:
         default: 'https://github.com/jimmyGALLAND/rustdesk-api-web'
   push:
     tags:
-      - 'v*.*.*'  # 当推送带有版本号的 tag（例如 v1.0.0）时触发工作流
+      - 'v*.*.*'
       - 'test*'
 
 env:
   LATEST_TAG: latest
-  WEBCLIENT_SOURCE_LOCATION: ${{ github.event.inputs.WEBCLIENT_SOURCE_LOCATION || 'https://github.com/jimmyGALLAND/rustdesk-api-web' }}
+  WEBCLIENT_SOURCE_LOCATION: ${{ github.event.inputs.WEBCLIENT_SOURCE_LOCATION }}
   BASE_IMAGE_NAMESPACE: ${{ github.event.inputs.BASE_IMAGE_NAMESPACE || github.actor }}
   DOCKERHUB_IMAGE_NAMESPACE: ${{ github.event.inputs.DOCKERHUB_IMAGE_NAMESPACE || github.actor }}
   GHCR_IMAGE_NAMESPACE: ${{ github.event.inputs.GHCR_IMAGE_NAMESPACE || github.actor }}
@@ -49,7 +49,7 @@ jobs:
       matrix:
         job:
           - { platform: "amd64", goos: "linux", file_ext: "tar.gz" }
-          #- { platform: "arm64", goos: "linux", file_ext: "tar.gz" }
+          #- { platform: "arm64", goos: "linux", f  ile_ext: "tar.gz" }
           #- { platform: "armv7l", goos: "linux", file_ext: "tar.gz" }
           #- { platform: "amd64", goos: "windows", file_ext: "zip" }
     steps:
@@ -57,9 +57,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/checkout@v4
+
+      - name: Prepare repo rustdesk-web-api
+        id: prep_web
+        run: |
+          REPO_PATH=$(echo "${{ env.WEBCLIENT_SOURCE_LOCATION }}" | sed 's|https://github.com/||g')
+          echo "REPO_PATH=$REPO_PATH" >> $GITHUB_ENV
+
+      - name: Checkout Web Client
+        uses: actions/checkout@v4
         with:
-          repository: lejianwen/rustdesk-api-web
+          repository: ${{ env.REPO_PATH }}
           path: rustdesk-api-web
           ref: master
 
@@ -151,79 +159,6 @@ jobs:
         run: npx changelogithub # or changelogithub@0.12 if ensure the stable result
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-  # deb-package:
-  #   name: debian package - ${{ matrix.job.platform }}
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       job:
-  #         - { platform: "amd64", goos: "linux", debian_platform: "amd64", crossbuild_package: ""}
-  #         - { platform: "arm64", goos: "linux", debian_platform: "arm64", crossbuild_package: "crossbuild-essential-arm64" }
-  #         - { platform: "armv7l", goos: "linux", debian_platform: "armhf", crossbuild_package: "crossbuild-essential-armhf" }
-  #   steps:
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v2
-
-  #     - name: Create packaging env
-  #       run: |
-  #         sudo apt update
-  #         DEBIAN_FRONTEND=noninteractive sudo apt install -y devscripts build-essential debhelper pkg-config ${{ matrix.job.crossbuild_package }}
-  #         mkdir -p debian-build/${{ matrix.job.platform }}/bin
-
-  #     - name: Get tag version
-  #       id: get_tag
-  #       run: |
-  #         TAG_VERSION="${GITHUB_REF##*/}"
-  #         VERSION="${TAG_VERSION#v}" 
-  #         echo "TAG_VERSION=$TAG_VERSION" >> $GITHUB_ENV
-  #         echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-  #     - name: Update changelog
-  #       run: |
-  #         DATE=$(date -R)
-  #         sed -i "1i rustdesk-api-server (${VERSION}) stable; urgency=medium\n\n  * Automatically generated release for version ${VERSION}.\n\n -- GitHub Actions <actions@github.com>  ${DATE}\n" debian/changelog
-
-  #     - name: Download binaries
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: rustdesk-api-${{ matrix.job.goos }}-${{ matrix.job.platform }}
-  #         path: .
-
-  #     - name: Unzip binaries
-  #       run: |
-  #         mkdir -p ${{ matrix.job.platform }}
-  #         tar -xzf ${{ matrix.job.goos }}-${{ matrix.job.platform }}.tar.gz -C ${{ matrix.job.platform }}
-
-  #     - name: Build package for ${{ matrix.job.platform }} arch
-  #       run: |
-  #         mv ${{ matrix.job.platform }}/release/apimain debian-build/${{ matrix.job.platform }}/bin/rustdesk-api 
-  #         mv ${{ matrix.job.platform }}/release/resources/admin resources
-  #         chmod -v a+x debian-build/${{ matrix.job.platform }}/bin/*
-  #         mkdir -p data
-  #         cp -vr debian systemd conf data resources runtime debian-build/${{ matrix.job.platform }}/
-  #         cat debian/control.tpl | sed 's/{{ ARCH }}/${{ matrix.job.debian_platform }}/' > debian-build/${{ matrix.job.platform }}/debian/control
-  #         cd debian-build/${{ matrix.job.platform }}/
-  #         debuild -i -us -uc -b -a${{ matrix.job.debian_platform}}
-
-  #     - name: Upload artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: rustdesk-api-${{ matrix.job.debian_platform }}
-  #         path: |
-  #           debian-build/*.deb
-
-  #     - name: Create Release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         files: |
-  #           debian-build/rustdesk-api-server_*_${{ matrix.job.debian_platform }}.deb
 
   docker:
     name: Push Docker Image
