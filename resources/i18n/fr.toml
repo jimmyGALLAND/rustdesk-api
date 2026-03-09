@@ -131,10 +131,10 @@ description = "Register success wait admin confirm."
 one = "Inscription réussie, veuillez attendre la confirmation de l'administrateur."
 
 [LabelUsername]
-one = "Nom d'utilisateur"
+other = "Nom d'utilisateur"
 
 [LabelPassword]
-one = "Mot de passe"
+other = "Mot de passe"
 
 [LabelPage]
 one = "Numéro de page"
